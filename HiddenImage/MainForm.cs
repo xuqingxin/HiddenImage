@@ -16,13 +16,14 @@ namespace HiddenImage
         public MainForm()
         {
             InitializeComponent();
+            MainForm_SizeChanged(null, null);
         }
 
         private void btnImage1_Click(object sender, EventArgs e)
         {
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                pbImage1.Image = Image.FromFile(openFileDialog.FileName);
+                pbImage1.Image = ImageUtility.LoadBitmapFromFile(openFileDialog.FileName);
                 GenerateImage();
             }
         }
@@ -31,7 +32,7 @@ namespace HiddenImage
         {
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                pbImage2.Image = Image.FromFile(openFileDialog.FileName);
+                pbImage2.Image = ImageUtility.LoadBitmapFromFile(openFileDialog.FileName);
                 GenerateImage();
             }
         }
@@ -90,31 +91,102 @@ namespace HiddenImage
             System.Runtime.InteropServices.Marshal.Copy(bmp1Data.Scan0, srcValues1, 0, src_bytes1);
             System.Runtime.InteropServices.Marshal.Copy(bmp2Data.Scan0, srcValues2, 0, src_bytes2);
 
-            int index = 1;
-            for (int i = 0; i < height; i++)
+            int mixType = rb1.Checked ? 1 : rb2.Checked ? 2 : rb3.Checked ? 3 : 0;
+            if (mixType == 0)
             {
-                index = 1 - index;
-                for (int j = index; j < width; j += 2)
+                for (int i = 0; i < height; i++)
                 {
-                    byte val = (byte)(255 - srcValues1[i * bmp1Data.Stride + j]);
-                    srcValues3[i * bmp3Data.Stride + j * 4] = 0;
-                    srcValues3[i * bmp3Data.Stride + j * 4 + 1] = 0;
-                    srcValues3[i * bmp3Data.Stride + j * 4 + 2] = 0;
-                    srcValues3[i * bmp3Data.Stride + j * 4 + 3] = val;
+                    for (int j = 0; j < width; j++)
+                    {
+                        int val1 = srcValues1[i * bmp1Data.Stride + j];
+                        int val2 = srcValues2[i * bmp2Data.Stride + j];
+                        srcValues3[i * bmp3Data.Stride + j * 4] = (byte)((val1 + val2) / 2);
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 1] = (byte)((val1 + val2) / 2);
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 2] = (byte)((val1 + val2) / 2);
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 3] = (byte)(((255 - val1) + val2) / 2);
+                    }
                 }
             }
-
-            index = 0;
-            for (int i = 0; i < height; i++)
+            else if (mixType == 1)
             {
-                index = 1 - index;
-                for (int j = index; j < width; j += 2)
+                for (int i = 0; i < height; i += 2)
                 {
-                    byte val = srcValues2[i * bmp2Data.Stride + j];
-                    srcValues3[i * bmp3Data.Stride + j * 4] = 255;
-                    srcValues3[i * bmp3Data.Stride + j * 4 + 1] = 255;
-                    srcValues3[i * bmp3Data.Stride + j * 4 + 2] = 255;
-                    srcValues3[i * bmp3Data.Stride + j * 4 + 3] = val;
+                    for (int j = 0; j < width; j++)
+                    {
+                        byte val = (byte)(255 - srcValues1[i * bmp1Data.Stride + j]);
+                        srcValues3[i * bmp3Data.Stride + j * 4] = 0;
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 1] = 0;
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 2] = 0;
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 3] = val;
+                    }
+                }
+
+                for (int i = 1; i < height; i += 2)
+                {
+                    for (int j = 0; j < width; j++)
+                    {
+                        byte val = srcValues2[i * bmp2Data.Stride + j];
+                        srcValues3[i * bmp3Data.Stride + j * 4] = 255;
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 1] = 255;
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 2] = 255;
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 3] = val;
+                    }
+                }
+            }
+            else if (mixType == 2)
+            {
+                for (int i = 0; i < height; i++)
+                {
+                    for (int j = 0; j < width; j += 2)
+                    {
+                        byte val = (byte)(255 - srcValues1[i * bmp1Data.Stride + j]);
+                        srcValues3[i * bmp3Data.Stride + j * 4] = 0;
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 1] = 0;
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 2] = 0;
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 3] = val;
+                    }
+                }
+
+                for (int i = 0; i < height; i++)
+                {
+                    for (int j = 1; j < width; j += 2)
+                    {
+                        byte val = srcValues2[i * bmp2Data.Stride + j];
+                        srcValues3[i * bmp3Data.Stride + j * 4] = 255;
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 1] = 255;
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 2] = 255;
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 3] = val;
+                    }
+                }
+            }
+            else if (mixType == 3)
+            {
+                int index = 1;
+                for (int i = 0; i < height; i++)
+                {
+                    index = 1 - index;
+                    for (int j = index; j < width; j += 2)
+                    {
+                        byte val = (byte)(255 - srcValues1[i * bmp1Data.Stride + j]);
+                        srcValues3[i * bmp3Data.Stride + j * 4] = 0;
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 1] = 0;
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 2] = 0;
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 3] = val;
+                    }
+                }
+
+                index = 0;
+                for (int i = 0; i < height; i++)
+                {
+                    index = 1 - index;
+                    for (int j = index; j < width; j += 2)
+                    {
+                        byte val = srcValues2[i * bmp2Data.Stride + j];
+                        srcValues3[i * bmp3Data.Stride + j * 4] = 255;
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 1] = 255;
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 2] = 255;
+                        srcValues3[i * bmp3Data.Stride + j * 4 + 3] = val;
+                    }
                 }
             }
 
@@ -146,6 +218,38 @@ namespace HiddenImage
             {
                 pbImage3.Image.Save(saveFileDialog.FileName, ImageFormat.Png);
             }
+        }
+
+        private void rb1_CheckedChanged(object sender, EventArgs e)
+        {
+            if ((sender as RadioButton).Checked)
+            {
+                GenerateImage();
+            }
+        }
+
+        private void MainForm_SizeChanged(object sender, EventArgs e)
+        {
+            int marginH = 12;
+            int marginV = 12;
+            int width = (ClientSize.Width - marginH * 4) / 3;
+            int height = ClientSize.Height - marginV * 4 - groupBox.Height - label1.Height;
+
+            pbImage1.Width = width;
+            pbImage1.Height = height;
+            pbImage1.Location = new Point(marginH, marginV * 2 + groupBox.Height);
+
+            pbImage2.Width = width;
+            pbImage2.Height = height;
+            pbImage2.Location = new Point(marginH * 2 + width, marginV * 2 + groupBox.Height);
+
+            pbImage3.Width = width;
+            pbImage3.Height = height;
+            pbImage3.Location = new Point(marginH * 3 + width * 2, marginV * 2 + groupBox.Height);
+
+            label1.Location = new Point(pbImage1.Location.X + (pbImage1.Width - label1.Width) / 2, pbImage1.Location.Y + pbImage1.Height + marginV);
+            label2.Location = new Point(pbImage2.Location.X + (pbImage2.Width - label2.Width) / 2, pbImage2.Location.Y + pbImage2.Height + marginV);
+            label3.Location = new Point(pbImage3.Location.X + (pbImage3.Width - label3.Width) / 2, pbImage3.Location.Y + pbImage3.Height + marginV);
         }
     }
 }

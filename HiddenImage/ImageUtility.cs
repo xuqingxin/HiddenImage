@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,6 +13,50 @@ namespace HiddenImage
 {
     public static class ImageUtility
     {
+        [DllImport("kernel32.dll", EntryPoint = "CopyMemory", SetLastError = true)]
+        private static extern void CopyMemory(IntPtr dest, IntPtr src, uint count);
+
+        public static Bitmap LoadBitmapFromFile(string filename)
+        {
+            if (!File.Exists(filename))
+            {
+                return null;
+            }
+            try
+            {
+                using (var fs = File.OpenRead(filename))
+                {
+                    using (Image image = Image.FromStream(fs))
+                    {
+                        if (image is Bitmap img)
+                        {
+                            return img.CloneBitmap();
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            return null;
+        }
+
+        public static Bitmap CloneBitmap(this Bitmap bitmap)
+        {
+            Bitmap bmp = new Bitmap(bitmap.Width, bitmap.Height, bitmap.PixelFormat);
+            BitmapData bitmapData1 = bitmap.LockBits(new Rectangle(Point.Empty, bitmap.Size), ImageLockMode.ReadOnly, bitmap.PixelFormat);
+            BitmapData bitmapData2 = bmp.LockBits(new Rectangle(Point.Empty, bmp.Size), ImageLockMode.ReadWrite, bmp.PixelFormat);
+            CopyMemory(bitmapData2.Scan0, bitmapData1.Scan0, (uint)(bitmapData1.Stride * bitmapData1.Height));
+            bitmap.UnlockBits(bitmapData1);
+            bmp.UnlockBits(bitmapData2);
+            if (bmp.PixelFormat == PixelFormat.Format8bppIndexed)
+            {
+                SetGrayscalePalette(bmp);
+            }
+            return bmp;
+        }
+
         public static void ARGB2Gray(ref Bitmap srcBitmap)
         {
             Bitmap newBitmap = ARGB2Gray(srcBitmap);
