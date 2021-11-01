@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29905.134
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiddenImage", "HiddenImage\HiddenImage.csproj", "{E56A8C65-FDAA-448D-82A5-9F149D6381AB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E56A8C65-FDAA-448D-82A5-9F149D6381AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E56A8C65-FDAA-448D-82A5-9F149D6381AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E56A8C65-FDAA-448D-82A5-9F149D6381AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E56A8C65-FDAA-448D-82A5-9F149D6381AB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4FADC0D4-8B77-4541-84A0-71EF6241630A}
+	EndGlobalSection
+EndGlobal
